@@ -10,7 +10,7 @@ Currently, **iosuhax** (by **smealum**) is the basis for the firmware patching f
 The exploit chain used to inject the firmware's code uses **yellows8**'s **wiiu_browserhax_fright** and is a direct implementation of two distinct vulnerabilities documented by **hykem**, **naehrwert** and **plutoo**. The exploit is compiled using a stripped down version of the **libwiiu** project and is triggered from the Wii U's **Web Browser**.
 
 # Dependencies
-  + [Cygwin](https://www.cygwin.com/), [MinGW](http://www.mingw.org/) or any other unix-like shell (Windows only) 
+  + For Windows users: [Cygwin](https://www.cygwin.com/), [MinGW](http://www.mingw.org/) or a unix-like shell, environment or operating system. 
   + [devkitPRO](https://sourceforge.net/projects/devkitpro/) (devkitPPC and devkitARM)
   + [armips](https://github.com/Kingcom/armips) (for assembling ARM patches)
   + [Python](https://www.python.org/) 2.x or 3.x
