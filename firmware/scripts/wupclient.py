@@ -1,4 +1,3 @@
-# may or may not be inspired by plutoo's ctrrpc
 import errno    
 import socket
 import sys
@@ -17,8 +16,8 @@ def copy_word(buffer, w, offset):
 
 def get_string(buffer, offset):
     s = buffer[offset:]
-    if 0x00 in s:
-        return s[:s.index(0x00)].decode("utf-8")
+    if "\0" in s:
+        return s[:s.index("\0")].decode("utf-8")
     else:
         return s.decode("utf-8")
 
@@ -559,12 +558,3 @@ def read_and_print(adr, size):
 if __name__ == '__main__':
     w = wupclient()
     mount_sd()
-    # mount_odd()
-    
-    # print(w.pwd())
-    # w.ls()
-    # w.dump_syslog()
-    # w.mkdir("/vol/storage_sdcard/usr", 0x600)
-    # install_title("test")
-    # get_nim_status()
-    # w.kill()

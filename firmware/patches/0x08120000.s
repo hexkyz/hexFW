@@ -1,6 +1,6 @@
 .arm.big
 
-.open "sections/0x8120000.bin","patched_sections/0x8120000.bin",0x8120000
+.open "patches/sections/0x08120000.bin","patches/patched_sections/0x08120000.bin",0x08120000
 
 CODE_SECTION_BASE equ 0x08120000
 CODE_SECTION_SIZE equ 0x00015000
@@ -10,19 +10,24 @@ RODATA_SECTION_BASE equ 0x08140000
 RODATA_SECTION_SIZE equ 0x00002478
 RODATA_BASE equ (RODATA_SECTION_BASE + RODATA_SECTION_SIZE)
 
-KERNEL_BSS_START equ (0x8150000 + 0x61230)
+DATA_SECTION_BASE equ 0x08143000
+DATA_SECTION_SIZE equ 0x0000D000
+DATA_BASE equ (DATA_SECTION_BASE + DATA_SECTION_SIZE)
 
-FRAMEBUFFER_ADDRESS equ (0x14000000+0x38C0000)
-; FRAMEBUFFER_ADDRESS equ (0x00708000 + 0x1B9000)
+BSS_SECTION_BASE equ 0x08150000
+BSS_SECTION_SIZE equ 0x00061230
+BSS_BASE equ (BSS_SECTION_BASE + BSS_SECTION_SIZE)
+
+FRAMEBUFFER_ADDRESS equ (0x14000000 + 0x38C0000)
 FRAMEBUFFER_STRIDE equ (0xE00)
 CHARACTER_MULT equ (2)
-CHARACTER_SIZE equ (8*CHARACTER_MULT)
+CHARACTER_SIZE equ (8 * CHARACTER_MULT)
 
 KERNEL_MEMSET equ 0x08131DA0
 KERNEL_SNPRINTF equ 0x08132988
 KERNEL_MCP_IOMAPPINGS_STRUCT equ 0x08140DE0
 
-; patch domains
+; Set all MMU domains to 0x55555555 (client access)
 .org 0x081253C4
 	str r3, [r7,#0x10]
 	str r3, [r7,#0x0C]
@@ -31,47 +36,61 @@ KERNEL_MCP_IOMAPPINGS_STRUCT equ 0x08140DE0
 	str r3, [r7,#0x08]
 	str r3, [r7,#0x34]
 
-; guru meditation patch !
-.org 0x0812A134 ; prefetch abort
+; Custom ARM exceptions' handler
+.org 0x0812A134 ; Instruction fetch abort
 	mov r3, #0
-	b crash_handler
-.org 0x0812A1AC ; data abort
+	b ex_handler
+.org 0x0812A1AC ; Data abort
 	mov r3, #1
-	b crash_handler
-.org 0x08129E50 ; undef inst
+	b ex_handler
+.org 0x08129E50 ; Illegal instruction
 	mov r3, #2
-	b crash_handler
+	b ex_handler
+.org 0x08129DF8 ; Bad stack
+	mov r3, #3
+	b ex_handler
+.org 0x08129D80 ; sysProt IOI fault
+	mov r3, #4
+	b ex_handler
 
 .org CODE_BASE
 
-crash_handler:
+ex_handler:
 	sub sp, #4
-	mov r4, r0
-	mov r5, r3
+	mov r4, r0	; thread_struct address
+	mov r5, r3	; Exception error number
 
+	; Clear framebuffer
 	ldr r0, =FRAMEBUFFER_ADDRESS
 	ldr r1, =0xFF
 	ldr r2, =896*504*4
 	bl KERNEL_MEMSET
 	
+	; Print exception type
 	mov r0, #0
 	mov r1, #0
+	cmp r5, #0
+	adreq r2, ex_handler_format_fetch
 	cmp r5, #1
-	adrlt r2, crash_handler_format_prefetch
-	adreq r2, crash_handler_format_data
-	adrgt r2, crash_handler_format_undef
-	ldr r3, [r4, #0x40]
+	adreq r2, ex_handler_format_data
+	cmp r5, #2
+	adreq r2, ex_handler_format_instr
+	cmp r5, #3
+	adreq r2, ex_handler_format_stack
+	cmp r5, #4
+	adreq r2, ex_handler_format_sysprot
 	bl _printf
 
 	mov r6, #0
-	crash_handler_loop:
-		
+	
+	; Print thread's registers
+	print_regs_loop:
 		mov r0, #20
 		mul r1, r6, r0
 		add r1, #40
 		cmp r6, #10
-		adrlt r2, crash_handler_format2
-		adrge r2, crash_handler_format3
+		adrlt r2, reg_format_0
+		adrge r2, reg_format_00
 		add r3, r4, #4
 		ldr r3, [r3, r6, lsl 2]
 		str r3, [sp]
@@ -80,51 +99,54 @@ crash_handler:
 
 		add r6, #1
 		cmp r6, #0x10
-		blt crash_handler_loop
+		blt print_regs_loop
 
-		mov r0, #400
-		mov r1, #20
-		adr r2, crash_handler_format4
-		ldr r3, [r4, #0x40]
-		ldr r3, [r3]
-		bl _printf
-
-	crash_handler_loop2:
-		b crash_handler_loop2
-	crash_handler_format_data:
-		.ascii "GURU MEDITATION ERROR (data abort)"
+	deadlock:
+		b deadlock
+	
+	ex_handler_format_fetch:
+		.ascii "ARM exception (instruction fetch abort)"
 		.byte 0x00
 		.align 0x4
-	crash_handler_format_prefetch:
-		.ascii "GURU MEDITATION ERROR (prefetch abort)"
+	
+	ex_handler_format_data:
+		.ascii "ARM exception (data abort)"
 		.byte 0x00
 		.align 0x4
-	crash_handler_format_undef:
-		.ascii "GURU MEDITATION ERROR (undefined instruction)"
+		
+	ex_handler_format_instr:
+		.ascii "ARM exception (illegal instruction)"
 		.byte 0x00
 		.align 0x4
-	crash_handler_format2:
+		
+	ex_handler_format_stack:
+		.ascii "ARM exception (bad stack)"
+		.byte 0x00
+		.align 0x4
+		
+	ex_handler_format_sysprot:
+		.ascii "ARM exception (sysProt IOI fault)"
+		.byte 0x00
+		.align 0x4
+		
+	reg_format_0:
 		.ascii "r%d  = %08X"
 		.byte 0x00
 		.align 0x4
-	crash_handler_format3:
+
+	reg_format_00:
 		.ascii "r%d = %08X"
-		.byte 0x00
-		.align 0x4
-	crash_handler_format4:
-		.ascii "%08X"
 		.byte 0x00
 		.align 0x4
 
 ; r0 : x, r1 : y, r2 : format, ...
-; NOT threadsafe so dont even try you idiot
 _printf:
 	ldr r12, =_printf_xylr
 	str r0, [r12]
 	str r1, [r12, #4]
 	str lr, [r12, #8]
 	ldr r0, =_printf_string
-	mov r1, #_printf_string_end-_printf_string
+	mov r1, #_printf_string_end - _printf_string
 	bl KERNEL_SNPRINTF
 	ldr r12, =_printf_xylr
 	ldr r1, [r12]
@@ -174,7 +196,7 @@ drawCharacter:
 			ldrb r0, [r5]
 			drawCharacter_loop2:
 				tst r0, #1
-				; as many STRs as CHARACTER_MULT (would be nice to do this in preproc...)
+				; as many STRs as CHARACTER_MULT
 				streq r1, [r4], #4
 				streq r1, [r4], #4
 				strne r2, [r4], #4
@@ -182,7 +204,7 @@ drawCharacter:
 				mov r0, r0, lsr #1
 				subs r7, #1
 				bne drawCharacter_loop2
-			add r4, #FRAMEBUFFER_STRIDE-CHARACTER_SIZE*4
+			add r4, #FRAMEBUFFER_STRIDE - CHARACTER_SIZE * 4
 			subs r3, #1
 			bne drawCharacter_loop3
 		add r5, #1
@@ -198,43 +220,43 @@ font_data:
 .Close
 
 
-.open "sections/0x8140000.bin","patched_sections/0x8140000.bin",0x8140000
+.open "patches/sections/0x08140000.bin","patches/patched_sections/0x08140000.bin",0x08140000
 
 .org KERNEL_MCP_IOMAPPINGS_STRUCT
-	.word mcpIoMappings_patch ; ptr to iomapping structs
-	.word 0x00000003 ; number of iomappings
-	.word 0x00000001 ; pid (MCP)
+	.word mcpIoMappings_patch ; Pointer to IO mapping structs
+	.word 0x00000003 ; Number of IO mapping structs
+	.word 0x00000001 ; PID (MCP)
 
 .org RODATA_BASE
 	mcpIoMappings_patch:
-		; mapping 1
+		; Espresso registers' mapping
 			.word 0x0D000000 ; vaddr
 			.word 0x0D000000 ; paddr
 			.word 0x001C0000 ; size
-			.word 0x00000000 ; ?
-			.word 0x00000003 ; ?
-			.word 0x00000000 ; ?
-		; mapping 2
+			.word 0x00000000 ; domain
+			.word 0x00000003 ; permissions (read/write)
+			.word 0x00000000 ; attributes (uncached)
+		; Latte registers' mapping
 			.word 0x0D800000 ; vaddr
 			.word 0x0D800000 ; paddr
 			.word 0x001C0000 ; size
-			.word 0x00000000 ; ?
-			.word 0x00000003 ; ?
-			.word 0x00000000 ; ?
-		; mapping 3
+			.word 0x00000000 ; domain
+			.word 0x00000003 ; permissions (read/write)
+			.word 0x00000000 ; attributes (uncached)
+		; External registers' mapping
 			.word 0x0C200000 ; vaddr
 			.word 0x0C200000 ; paddr
 			.word 0x00100000 ; size
-			.word 0x00000000 ; ?
-			.word 0x00000003 ; ?
-			.word 0x00000000 ; ?
+			.word 0x00000000 ; domain
+			.word 0x00000003 ; permissions (read/write)
+			.word 0x00000000 ; attributes (uncached)
 
 .Close
 
 
-.create "patched_sections/0x8150000.bin",0x8150000
+.create "patches/patched_sections/0x08150000.bin",0x08150000
 
-.org KERNEL_BSS_START
+.org BSS_BASE
 	_printf_xylr:
 		.word 0x00000000
 		.word 0x00000000
