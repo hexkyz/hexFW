@@ -27,6 +27,14 @@ KERNEL_MEMSET equ 0x08131DA0
 KERNEL_SNPRINTF equ 0x08132988
 KERNEL_MCP_IOMAPPINGS_STRUCT equ 0x08140DE0
 
+; Use syscall 0x81 for arbitrary read/write
+.org 0x0812CD2C
+    b rw_syscall
+
+; Remove PID check for syscall 0x22 (read_otp)
+.org 0x0812037C
+	cmp r12, r12
+	
 ; Set all MMU domains to 0x55555555 (client access)
 .org 0x081253C4
 	str r3, [r7,#0x10]
@@ -54,6 +62,12 @@ KERNEL_MCP_IOMAPPINGS_STRUCT equ 0x08140DE0
 	b ex_handler
 
 .org CODE_BASE
+
+rw_syscall:
+	cmp r0, #0
+	ldreq r0, [r1]
+	strne r2, [r1]
+	bx lr
 
 ex_handler:
 	sub sp, #4
@@ -229,23 +243,23 @@ font_data:
 
 .org RODATA_BASE
 	mcpIoMappings_patch:
-		; Espresso registers' mapping
-			.word 0x0D000000 ; vaddr
+		; Latte registers (shared with Espresso) mapping
 			.word 0x0D000000 ; paddr
+			.word 0x0D000000 ; vaddr
 			.word 0x001C0000 ; size
 			.word 0x00000000 ; domain
 			.word 0x00000003 ; permissions (read/write)
 			.word 0x00000000 ; attributes (uncached)
-		; Latte registers' mapping
-			.word 0x0D800000 ; vaddr
+		; Latte registers mapping
 			.word 0x0D800000 ; paddr
+			.word 0x0D800000 ; vaddr
 			.word 0x001C0000 ; size
 			.word 0x00000000 ; domain
 			.word 0x00000003 ; permissions (read/write)
 			.word 0x00000000 ; attributes (uncached)
-		; External registers' mapping
-			.word 0x0C200000 ; vaddr
+		; Espresso registers mapping
 			.word 0x0C200000 ; paddr
+			.word 0x0C200000 ; vaddr
 			.word 0x00100000 ; size
 			.word 0x00000000 ; domain
 			.word 0x00000003 ; permissions (read/write)

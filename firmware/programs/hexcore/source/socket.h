@@ -1,7 +1,6 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-// slightly stolen from ctrulib
 #include <stdint.h>
 
 #define SOL_SOCKET	0xFFFF

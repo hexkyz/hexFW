@@ -7,12 +7,11 @@ export PATH:=$(DEVKITARM)/bin:$(PATH)
 endif
 
 CC = arm-none-eabi-gcc
-# LINK = arm-none-eabi-gcc
 LINK = arm-none-eabi-ld
 AS = arm-none-eabi-as
 OBJCOPY = arm-none-eabi-objcopy
 CFLAGS += -Wall -mbig-endian -std=c99 -march=armv5 -Os -I$(DEVKITPRO)/libnds/include
-LDFLAGS += --script=ccd00.ld -EB -L"$(DEVKITARM)/arm-none-eabi/lib" -Map=output.map
+LDFLAGS += --script=link.ld -EB -L"$(DEVKITARM)/arm-none-eabi/lib" -Map=output.map
 
 CFILES = $(wildcard source/*.c)
 BINFILES = $(wildcard data/*.bin)
@@ -50,7 +49,7 @@ $(PROJECTNAME).elf: $(OFILES)
 clean:
 	@rm -f build/*.o build/*.d
 	@rm -f $(PROJECTNAME).elf $(PROJECTNAME).bin
-	@echo "all cleaned up !"
+	@echo "Done!"
 
 -include $(DFILES)
 

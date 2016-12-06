@@ -129,7 +129,7 @@ NEW_TIMEOUT equ (0xFFFFFFFF)
 ; Append our thread's code
 .org 0x05116000
 	thread_entry:
-		.incbin "programs/wupserver/wupserver.bin"
+		.incbin "programs/hexcore/hexcore.bin"
 	.align 0x100
 
 .Close

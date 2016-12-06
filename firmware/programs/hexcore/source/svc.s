@@ -2,6 +2,12 @@
 .arm
 .align 4
 
+.global svcReadOTP
+.type svcReadOTP, %function
+svcReadOTP:
+	.word 0xE7F022F0
+	bx lr
+
 .global svcAlloc
 .type svcAlloc, %function
 svcAlloc:
@@ -55,9 +61,15 @@ svcInvalidateDCache:
 svcFlushDCache:
 	.word 0xE7F052F0
 	bx lr
+	
+.global svcShutdown
+.type svcShutdown, %function
+svcShutdown:
+	.word 0xE7F072F0
+	bx lr
 
-.global svcBackdoor
-.type svcBackdoor, %function
-svcBackdoor:
+.global svcRW
+.type svcRW, %function
+svcRW:
 	.word 0xE7F081F0
 	bx lr
