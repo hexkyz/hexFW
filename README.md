@@ -12,7 +12,7 @@ The exploit chain used to inject the firmware's code uses **yellows8**'s **wiiu_
 # Dependencies
   + For Windows users: [Cygwin](https://www.cygwin.com/), [MinGW](http://www.mingw.org/) or a unix-like shell, environment or operating system. 
   + [devkitPRO](https://sourceforge.net/projects/devkitpro/) (devkitPPC and devkitARM)
-  + [armips](https://github.com/Kingcom/armips) (for assembling ARM patches)
+  + [armips](https://github.com/Kingcom/armips) (for assembling ARM patches; you can find a precompiled binary at https://github.com/hexkyz/armips/releases)
   + [Python](https://www.python.org/) 2.x or 3.x
   + [XAMPP](https://www.apachefriends.org/index.html) or equivalent for self-hosting (optional)
 
@@ -27,6 +27,20 @@ The exploit chain used to inject the firmware's code uses **yellows8**'s **wiiu_
   + Copy the **"fw.img"** file inside **"sdcard"** into the root of your SD card (FAT32 formatted, preferably).
   + Setup a server (e.g.: **localhost:8080**) and host the contents of **"www"**. After inserting the SD card (with the firmware image) into the Wii U, browse to **"wiiu_browserhax.php"** and pass along your target system's version (e.g.: **localhost:8080/wiiu_browserhax.php?sysver=550**).
   + The launcher will run (**"fwboot"**) and launch the firmware image from the SD card.
+  
+## hexcore
+**hexcore** is the default program distributed with hexFW. It's code is injected into IOS-MCP and runs in a dedicated thread, similar to how the old wupserver works.
+Upon launching the generated **"fw.img"**, you will be presented with a barebones recovery console with the following options:  
+
+  + Dump OTP -> Dumps your console's OTP into the SD card
+  + Dump SEEPROM -> Dumps your console's SEEPROM into the SD card
+  + Dump SLC/SLCCMPT -> Dumps a raw image of the SLC and SLCCMPT into the SD card
+  + Launch wupserver -> Sets up wupserver and proceeds with booting sysNAND
+  + Shutdown -> Simply shuts the console down
+  + Credits -> Displays the credits page for 10 seconds
+  
+You can browse the options' list by pressing the **"Eject"** button and confirm by pressing the **"Power"** button.
+Please note that this is still a work in progress and is meant to showcase the potential for a complete CFW solution. More functionalities will be added in time and the general mode of operation may change at any time.
   
 # Credits
   + **smealum** - iosuhax project (https://github.com/smealum/iosuhax)
