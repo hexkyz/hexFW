@@ -17,7 +17,7 @@ The exploit chain used to inject the firmware's code uses **yellows8**'s **wiiu_
   + [XAMPP](https://www.apachefriends.org/index.html) or equivalent for self-hosting (optional)
 
 # Building
-  + Open **"Keys.txt"** with a text editor and replace the dummy Starbuck ancast keys with the real ones;
+  + Open **"Keys.txt"** with a text editor and replace the dummy keys with the real ones;
   + Copy **"armips(.exe)"** to the root of the **"firmware"** folder;
   + Browse back to the main folder (**"hexFW"**) and run **"make"** from a shell.
   
