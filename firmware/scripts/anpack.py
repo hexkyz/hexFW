@@ -1,11 +1,15 @@
 import sys
 import struct
 import hashlib
+import ConfigParser
 from Crypto.Cipher import AES
 
-# Ancast keys (fill this manually)
-ancast_key = "DEADC0DEDEADC0DEDEADC0DEDEADC0DE"
-ancast_iv = "DEADC0DEDEADC0DEDEADC0DEDEADC0DE"
+# Starbuck ancast keys
+cfg = ConfigParser.ConfigParser()
+cfg.read("../Keys.txt")
+
+ancast_key=cfg.get("KEYS", "starbuck_ancast_key")
+ancast_iv=cfg.get("KEYS", "starbuck_ancast_iv")
 
 # ELF32 header parsing
 class elf32_ehdr:
