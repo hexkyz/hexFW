@@ -44,7 +44,7 @@ Upon launching the generated **"fw.img"**, you will be presented with a barebone
 You can browse the options' list by pressing the **"Eject"** button and confirm by pressing the **"Power"** button.
 Please note that this is still a work in progress and is meant to showcase the potential for a complete CFW solution. More functionalities will be added in time and the general mode of operation may change at any time.
 
-## boot1 dumping
+### boot1 dumping
 In order to dump your console's boot1 binary you have to boot hexFW twice.
 Launch hexFW and select the option **"Dump BOOT1+OTP"**. This will reboot your console and you'll have to launch hexFW again.
 The second time you select the **"Dump BOOT1+OTP"** option, the actual binary will be written to your SD card.
