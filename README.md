@@ -50,7 +50,7 @@ Launch hexFW and select the option **"Dump BOOT1+OTP"**. This will reboot your c
 The second time you select the **"Dump BOOT1+OTP"** option, the actual binary will be written to your SD card.
   
 # Credits
-  + **derrek**, **yellows8**, **naehrwert**, **plutoo** and **shuffle2** - boot_info vulnerability
+  + **derrek**, **yellows8**, **naehrwert**, **plutoo** and **shuffle2** - boot_info vulnerability (http://wiiubrew.org/wiki/Wii_U_System_Flaws#boot1)
   + **smealum** - iosuhax project (https://github.com/smealum/iosuhax)
   + **yellows8** - wiiu_browserhax_fright exploit (https://github.com/yellows8/wiiuhaxx_common and https://github.com/yellows8/wiiu_browserhax_fright)
   + **hykem**, **naehrwert** and **plutoo** - IOS-USB bad array index check (uhshax) vulnerability (http://wiiubrew.org/wiki/Exploits#IOS-USB_bad_array_index_check_.28uhshax.29); IOS_CreateThread unchecked memset vulnerability (http://wiiubrew.org/wiki/Exploits#IOS_CreateThread_unchecked_memset); extensive documentation and research on the Wii U
