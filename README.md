@@ -34,15 +34,24 @@ Upon launching the generated **"fw.img"**, you will be presented with a barebone
 
   + Dump OTP -> Dumps your console's OTP into the SD card
   + Dump SEEPROM -> Dumps your console's SEEPROM into the SD card
-  + Dump SLC/SLCCMPT -> Dumps a raw image of the SLC and SLCCMPT into the SD card
+  + Dump SLC -> Dumps a raw image of the SLC into the SD card
+  + Dump SLCCMPT -> Dumps a raw image of the SLCCMPT into the SD card
+  + Dump MLC -> Dumps a raw image of the MLC into the SD card
+  + Dump BOOT1+OTP -> Dumps your console's plaintext boot1 binary and the unlocked OTP
   + Launch wupserver -> Sets up wupserver and proceeds with booting sysNAND
   + Shutdown -> Simply shuts the console down
   + Credits -> Displays the credits page for 10 seconds
   
 You can browse the options' list by pressing the **"Eject"** button and confirm by pressing the **"Power"** button.
 Please note that this is still a work in progress and is meant to showcase the potential for a complete CFW solution. More functionalities will be added in time and the general mode of operation may change at any time.
+
+## boot1 dumping
+In order to dump your console's boot1 binary you have to boot hexFW twice.
+Launch hexFW and select the option **"Dump BOOT1+OTP"**. This will reboot your console and you'll have to launch hexFW again.
+The second time you select the **"Dump BOOT1+OTP"** option, the actual binary will be written to your SD card.
   
 # Credits
+  + **derrek**, **yellows8**, **naehrwert**, **plutoo** and **shuffle2** - boot_info vulnerability
   + **smealum** - iosuhax project (https://github.com/smealum/iosuhax)
   + **yellows8** - wiiu_browserhax_fright exploit (https://github.com/yellows8/wiiuhaxx_common and https://github.com/yellows8/wiiu_browserhax_fright)
   + **hykem**, **naehrwert** and **plutoo** - IOS-USB bad array index check (uhshax) vulnerability (http://wiiubrew.org/wiki/Exploits#IOS-USB_bad_array_index_check_.28uhshax.29); IOS_CreateThread unchecked memset vulnerability (http://wiiubrew.org/wiki/Exploits#IOS_CreateThread_unchecked_memset); extensive documentation and research on the Wii U
