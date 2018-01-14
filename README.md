@@ -10,16 +10,15 @@ Currently, **iosuhax** (by **smealum**) is the basis for the firmware patching f
 The exploit chain used to inject the firmware's code uses **yellows8**'s **wiiu_browserhax_fright** and is a direct implementation of two distinct vulnerabilities documented by **hykem**, **naehrwert** and **plutoo**. The exploit is compiled using a stripped down version of the **libwiiu** project and is triggered from the Wii U's **Web Browser**.
 
 # Dependencies
-  + For Windows users: [Cygwin](https://www.cygwin.com/), [MinGW](http://www.mingw.org/) or a unix-like shell, environment or operating system. 
+  + For Windows users: [Cygwin](https://www.cygwin.com/), [MinGW](http://www.mingw.org/) or a unix-like shell, environment or operating system
   + [devkitPRO](https://sourceforge.net/projects/devkitpro/) (devkitPPC and devkitARM)
-  + [armips](https://github.com/Kingcom/armips) (for assembling ARM patches; you can find a precompiled binary at https://github.com/hexkyz/armips/releases)
-  + [Python](https://www.python.org/) 2.x or 3.x
+  + [armips](https://github.com/Kingcom/armips) (for assembling ARM patches; you can find a precompiled Windows binary at https://github.com/hexkyz/armips/releases)
+  + [Python](https://www.python.org/) 2.7.x
   + [XAMPP](https://www.apachefriends.org/index.html) or equivalent for self-hosting (optional)
 
 # Building
-  + Place your retail **"fw.img"** file (encrypted or decrypted but with the header attached) inside the folder **"firmware/img"**.
-  + Copy **"armips.exe"** into the root of the **"firmware"** folder.
-  + Edit **"firmware/scripts/anpack.py"** and manually replace the dummy ancast keys with the real ones.
+  + Open **"Keys.txt"** with a text editor and replace the dummy keys with the real ones;
+  + Copy **"armips(.exe)"** to the root of the **"firmware"** folder;
   + Browse back to the main folder (**"hexFW"**) and run **"make"** from a shell.
   
 # Usage
@@ -56,3 +55,4 @@ The second time you select the **"Dump BOOT1+OTP"** option, the actual binary wi
   + **yellows8** - wiiu_browserhax_fright exploit (https://github.com/yellows8/wiiuhaxx_common and https://github.com/yellows8/wiiu_browserhax_fright)
   + **hykem**, **naehrwert** and **plutoo** - IOS-USB bad array index check (uhshax) vulnerability (http://wiiubrew.org/wiki/Exploits#IOS-USB_bad_array_index_check_.28uhshax.29); IOS_CreateThread unchecked memset vulnerability (http://wiiubrew.org/wiki/Exploits#IOS_CreateThread_unchecked_memset); extensive documentation and research on the Wii U
   + **libwiiu team** - libwiiu framework (https://github.com/wiiudev/libwiiu)
+  + **FIX94** - fw.img downloader (https://github.com/FIX94/iosuhax/blob/master/bin/getfwimg.py)
