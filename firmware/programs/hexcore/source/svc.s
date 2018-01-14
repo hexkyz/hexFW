@@ -67,6 +67,12 @@ svcFlushDCache:
 svcShutdown:
 	.word 0xE7F072F0
 	bx lr
+	
+.global svcReset
+.type svcReset, %function
+svcReset:
+	.word 0xE7F074F0
+	bx lr
 
 .global svcRW
 .type svcRW, %function

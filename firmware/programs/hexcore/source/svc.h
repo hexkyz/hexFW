@@ -24,6 +24,7 @@ int svcIoctlv(int fd, u32 request, u32 vector_count_in, u32 vector_count_out, io
 int svcInvalidateDCache(void* address, u32 size);
 int svcFlushDCache(void* address, u32 size);
 void svcShutdown(int action);
+void svcReset();
 int svcRW(int mode, u32 addr, u32 data);
 
 #endif
