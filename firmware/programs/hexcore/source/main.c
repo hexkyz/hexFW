@@ -9,8 +9,8 @@
 #include "svc.h"
 #include "text.h"
 
-#define FG_COLOR_REGULAR 	(0x00000000)
-#define BG_COLOR_REGULAR 	(0xFF0000FF)
+#define FG_COLOR_REGULAR	(0x00000000)
+#define BG_COLOR_REGULAR	(0xFF0000FF)
 #define BG_COLOR_HIGHLIGHT	(0xFFFFFFFF)
 
 bool server_done;
@@ -18,7 +18,7 @@ bool server_done;
 void init_screen()
 {
 	clearScreen(0xFF0000FF);
-	print(0, 0, FG_COLOR_REGULAR, BG_COLOR_REGULAR, "Welcome to hexFW (v0.0.2) by hexkyz");
+	print(0, 0, FG_COLOR_REGULAR, BG_COLOR_REGULAR, "Welcome to hexFW (v0.0.3) by hexkyz");
 }
 
 void print_credits()
@@ -556,36 +556,36 @@ void dump_boot1()
 		kern_write(0x00000008, 0xDEADC0DE);
 		
 		// Call read_otp
-		kern_write(0x00000048, 0xE59F00F8);		// LDR    R0, [PC,#0x100]
-		kern_write(0x0000004C, 0xE59F10F8);		// LDR    R1, [PC,#0x100]
-		kern_write(0x00000050, 0xE59F20F8);		// LDR    R2, [PC,#0x100]
-		kern_write(0x00000054, 0xE59F30F8);		// LDR    R3, [PC,#0x100]
-		kern_write(0x00000058, 0xE12FFF33); 	// BLX    R3
+		kern_write(0x00000048, 0xE59F00F8);		// LDR	  R0, [PC,#0x100]
+		kern_write(0x0000004C, 0xE59F10F8);		// LDR	  R1, [PC,#0x100]
+		kern_write(0x00000050, 0xE59F20F8);		// LDR	  R2, [PC,#0x100]
+		kern_write(0x00000054, 0xE59F30F8);		// LDR	  R3, [PC,#0x100]
+		kern_write(0x00000058, 0xE12FFF33);		// BLX	  R3
 		
 		// Call memcpy
-		kern_write(0x0000005C, 0xE59F00F8);		// LDR    R0, [PC,#0x100]
-		kern_write(0x00000060, 0xE59F10F8);		// LDR    R1, [PC,#0x100]
-		kern_write(0x00000064, 0xE59F20F8);		// LDR    R2, [PC,#0x100]
-		kern_write(0x00000068, 0xE59F30F8);		// LDR    R3, [PC,#0x100]
-		kern_write(0x0000006C, 0xE12FFF33); 	// BLX    R3
+		kern_write(0x0000005C, 0xE59F00F8);		// LDR	  R0, [PC,#0x100]
+		kern_write(0x00000060, 0xE59F10F8);		// LDR	  R1, [PC,#0x100]
+		kern_write(0x00000064, 0xE59F20F8);		// LDR	  R2, [PC,#0x100]
+		kern_write(0x00000068, 0xE59F30F8);		// LDR	  R3, [PC,#0x100]
+		kern_write(0x0000006C, 0xE12FFF33);		// BLX	  R3
 		
 		// Patch boot_info_ptr
-		kern_write(0x00000070, 0xE59F10F8);		// LDR    R1, [PC,#0x100]
-		kern_write(0x00000074, 0xE59F20F8);		// LDR    R2, [PC,#0x100]
-		kern_write(0x00000078, 0xE5812000); 	// STR    R2, [R1]
+		kern_write(0x00000070, 0xE59F10F8);		// LDR	  R1, [PC,#0x100]
+		kern_write(0x00000074, 0xE59F20F8);		// LDR	  R2, [PC,#0x100]
+		kern_write(0x00000078, 0xE5812000);		// STR	  R2, [R1]
 		
 		// Patch PRSH checksum
-		kern_write(0x0000007C, 0xE59F10F8);		// LDR    R1, [PC,#0x100]
-		kern_write(0x00000080, 0xE59F20F8);		// LDR    R2, [PC,#0x100]
-		kern_write(0x00000084, 0xE5812000); 	// STR    R2, [R1]
+		kern_write(0x0000007C, 0xE59F10F8);		// LDR	  R1, [PC,#0x100]
+		kern_write(0x00000080, 0xE59F20F8);		// LDR	  R2, [PC,#0x100]
+		kern_write(0x00000084, 0xE5812000);		// STR	  R2, [R1]
 		
 		// Jump back to boot1
-		kern_write(0x00000088, 0xE59FF0F8);		// LDR    PC, [PC,#0x100]
+		kern_write(0x00000088, 0xE59FF0F8);		// LDR	  PC, [PC,#0x100]
 		
 		// read_otp data
 		kern_write(0x00000148, 0x00000000);			// OTP index
 		kern_write(0x0000014C, 0x10009000);			// Buffer address
-		kern_write(0x00000150, 0x00000400);		 	// OTP data size
+		kern_write(0x00000150, 0x00000400);			// OTP data size
 		kern_write(0x00000154, 0x0D4002DC | 0x01);	// boot1 read_otp address
 		
 		// memcpy data
@@ -614,6 +614,17 @@ void dump_boot1()
 	{
 		// Fix up corruption from boot1hax
 		*(u32 *)(0x1000A200 + 0xAA75) = 0x0800000D;
+		
+		// Revert runtime changes for boot1 v8377
+		// TODO: Add support for older boot1 versions
+		*(u32 *)(0x1000A200 + 0xD884) = 0xFFFFFFFC;
+		*(u32 *)(0x1000A200 + 0xDA68) = 0xC0000000;
+		*(u32 *)(0x1000A200 + 0xDA78) = 0xC0000000;
+		*(u32 *)(0x1000A200 + 0xDD00) = 0xFFFFFFFF;
+		*(u32 *)(0x1000A200 + 0xDD38) = 0x24100010;
+		memset((void *)(0x1000A200 + 0xDA40), 0x00, 0x28);
+		memset((void *)(0x1000A200 + 0xDD14), 0x00, 0x1C);
+		memset((void *)(0x1000A200 + 0xDD40), 0x00, 0x2C0);
 		
 		// Dump to SD card
 		void* otp_buf = svcAlloc(0xCAFF, 0x400);
