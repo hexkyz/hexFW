@@ -16,6 +16,7 @@
 #define MCP_BSP_WRITE ((void*)0x05059570)
 #define MCP_FLUSH_DCACHE ((void*)0x05059178)
 #define MCP_ENC_PRSH ((void*)0x0500A611)
+#define MCP_LOAD_BOOT1_PARAMS ((void*)0x05006A29)
 
 void usleep(u32 time);
 void seeprom_read(u32 offset, u32 size, void* out_buf);
@@ -25,5 +26,6 @@ int bsp_read(char *entity, u32 offset, char* param, u32 out_size, void* out_buf)
 int bsp_write(char *entity, u32 offset, char* param, u32 in_size, void* in_buf);
 void flush_dcache(u32 addr, u32 size);
 int enc_prsh(u32 addr, u32 size, void* iv_buf, u32 iv_size);
+void load_boot1_params();
 
 #endif
