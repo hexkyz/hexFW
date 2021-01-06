@@ -40,6 +40,11 @@ int enc_prsh(u32 addr, u32 size, void* iv_buf, u32 iv_size)
 	return ((int (*const)(u32, u32, void*, u32))MCP_ENC_PRSH)(addr, size, iv_buf, iv_size);
 }
 
+void load_boot1_params()
+{
+	((void (*const)(void))MCP_LOAD_BOOT1_PARAMS)();
+}
+
 void* memset(void* dst, int val, size_t size)
 {
 	char* _dst = dst;

@@ -490,8 +490,84 @@ void dump_ramdisk()
 	svcFree(0xCAFF, ramdisk_buf);
 }
 
+u16 get_boot1_version()
+{
+	struct
+	{
+		u16 version;
+		u16 nand_block;
+		u8 empty[8];
+		u32 checksum;
+	}
+	*bootp = (void *)0x05074980;
+	
+	// Let MCP load and decrypt seeprom boot1 params
+	load_boot1_params();
+	
+	// Find the latest valid version installed
+	u16 version = 0;
+	for (int i = 0; i < 2; i++)
+	{
+		// Compute CRC32 for the first 0x0C bytes
+		u32 crc, j, k;
+		for (crc = ~0, j = 0; j < 0x0C; j++)
+			for (crc ^= ((u8*)&bootp[i])[j], k = 0; k < 8; k++)
+				crc = (crc >> 1) ^ (0xEDB88320 & -(crc & 1));
+		
+		// Verify saved checksum
+		if (bootp[i].checksum != ~crc)
+			continue;
+		
+		// Get the latest valid version
+		if (bootp[i].version > version)
+			version = bootp[i].version;
+	}
+	
+	return version;
+}
+
 void dump_boot1()
 {
+	static const struct
+	{
+		u16 version;		// Boot1 version
+		u16 offs_boot_info;	// Target boot_info address inside boot1
+		u16 offs_read_otp;	// Boot1 read_otp address
+		u16 offs_memcpy;	// Boot1 memcpy address
+		u16 offs_return;	// Exploit return address
+		u16 offs_revert0;	// Revert runtime changes
+		u16 offs_revert1;
+		u16 offs_revert2;
+		u16 offs_revert3;
+		u16 offs_revert4;
+		u16 offs_revert5;
+		u16 offs_revert6;
+		u16 offs_revert7;
+	}
+	ver_data[] =
+	{
+		{8296, 0xA5E5, 0x00FC, 0x959C, 0x0500, 0xD344, 0xD524, 0xD534, 0xD844, 0xD87C, 0xD500, 0xD858, 0xD880},
+		{8325, 0xA5A5, 0x00FC, 0x9574, 0x0500, 0xD7C4, 0xD9A4, 0xD9B4, 0xDCC4, 0xDCFC, 0xD980, 0xDCD8, 0xDD00},
+		{8339, 0xA9A5, 0x00DC, 0x995C, 0x04F0, 0xD6E4, 0xD8A4, 0xD8B4, 0xDB3C, 0xDB74, 0xD880, 0xDB50, 0xDB80},
+		{8342, 0xA9A9, 0x00DC, 0x9960, 0x04F0, 0xD704, 0xD8E4, 0xD8F4, 0xDB7C, 0xDBB4, 0xD8C0, 0xDB90, 0xDBC0},
+		{8354, 0xA9D5, 0x00DC, 0x998C, 0x04F0, 0xD724, 0xD8E4, 0xD8F4, 0xDB7C, 0xDBB4, 0xD8C0, 0xDB90, 0xDBC0},
+		{8377, 0xAA6D, 0x00DC, 0x99DC, 0x056A, 0xD884, 0xDA68, 0xDA78, 0xDD00, 0xDD38, 0xDA40, 0xDD14, 0xDD40},
+	};
+	u32 ver_count = sizeof(ver_data) / sizeof(*ver_data);
+	
+	// Get installed boot1 version
+	u16 boot1_version = get_boot1_version();
+	
+	// Find correct exploit data for this boot1 version
+	int ver_idx;
+	for (ver_idx = 0; ver_idx < ver_count; ver_idx++)
+		if (ver_data[ver_idx].version == boot1_version)
+			break;
+	
+	// Unsupported boot1 version
+	if (ver_idx == ver_count)
+		return;
+	
 	u32 boot1_ancast_magic = *(u32 *)0x1000A000;
 	
 	// Run boot1hax
@@ -521,7 +597,7 @@ void dump_boot1()
 		}
 		
 		// Change boot_info to point inside boot1 memory
-		*(u32 *)boot_info_ptr_addr = 0x0D40AC6D;
+		*(u32 *)boot_info_ptr_addr = 0x0D400200 + ver_data[ver_idx].offs_boot_info;
 		
 		// Re-calculate PRSH checksum
 		u32 checksum = 0;
@@ -586,13 +662,15 @@ void dump_boot1()
 		kern_write(0x00000148, 0x00000000);			// OTP index
 		kern_write(0x0000014C, 0x10009000);			// Buffer address
 		kern_write(0x00000150, 0x00000400);			// OTP data size
-		kern_write(0x00000154, 0x0D4002DC | 0x01);	// boot1 read_otp address
+		kern_write(0x00000154,						// boot1 read_otp address
+			(0x0D400200 + ver_data[ver_idx].offs_read_otp) | 0x01);
 		
 		// memcpy data
 		kern_write(0x0000015C, 0x1000A000);			// MEM2 address
 		kern_write(0x00000160, 0x0D400000);			// boot1 address
 		kern_write(0x00000164, 0x0000E200);			// boot1 data size
-		kern_write(0x00000168, 0x0D409BDC);			// boot1 memcpy address
+		kern_write(0x00000168,						// boot1 memcpy address
+			0x0D400200 + ver_data[ver_idx].offs_memcpy);
 		
 		// boot_info_ptr data
 		kern_write(0x00000170, boot_info_ptr_addr);
@@ -603,7 +681,8 @@ void dump_boot1()
 		kern_write(0x00000180, checksum_old);
 		
 		// Return address
-		kern_write(0x00000188, 0x0D40076A | 0x01);	// Return to boot1
+		kern_write(0x00000188,						// Return to boot1
+			(0x0D400200 + ver_data[ver_idx].offs_return) | 0x01);
 		
 		// Reset
 		svcShutdown(1);
@@ -613,18 +692,18 @@ void dump_boot1()
 	else	// Dump boot1 and OTP from memory
 	{
 		// Fix up corruption from boot1hax
-		*(u32 *)(0x1000A200 + 0xAA75) = 0x0800000D;
+		u32 restore_val = 0x0800000D;
+		memcpy((void *)(0x1000A200 + ver_data[ver_idx].offs_boot_info + 0x8), &restore_val, sizeof(restore_val));
 		
-		// Revert runtime changes for boot1 v8377
-		// TODO: Add support for older boot1 versions
-		*(u32 *)(0x1000A200 + 0xD884) = 0xFFFFFFFC;
-		*(u32 *)(0x1000A200 + 0xDA68) = 0xC0000000;
-		*(u32 *)(0x1000A200 + 0xDA78) = 0xC0000000;
-		*(u32 *)(0x1000A200 + 0xDD00) = 0xFFFFFFFF;
-		*(u32 *)(0x1000A200 + 0xDD38) = 0x24100010;
-		memset((void *)(0x1000A200 + 0xDA40), 0x00, 0x28);
-		memset((void *)(0x1000A200 + 0xDD14), 0x00, 0x1C);
-		memset((void *)(0x1000A200 + 0xDD40), 0x00, 0x2C0);
+		// Revert runtime changes for boot1
+		*(u32 *)(0x1000A200 + ver_data[ver_idx].offs_revert0) = 0xFFFFFFFC;
+		*(u32 *)(0x1000A200 + ver_data[ver_idx].offs_revert1) = 0xC0000000;
+		*(u32 *)(0x1000A200 + ver_data[ver_idx].offs_revert2) = 0xC0000000;
+		*(u32 *)(0x1000A200 + ver_data[ver_idx].offs_revert3) = 0xFFFFFFFF;
+		*(u32 *)(0x1000A200 + ver_data[ver_idx].offs_revert4) = 0x24100010;
+		memset((void *)(0x1000A200 + ver_data[ver_idx].offs_revert5), 0x00, 0x28);
+		memset((void *)(0x1000A200 + ver_data[ver_idx].offs_revert6), 0x00, 0x1C);
+		memset((void *)(0x1000A200 + ver_data[ver_idx].offs_revert7), 0x00, 0x2C0);
 		
 		// Dump to SD card
 		void* otp_buf = svcAlloc(0xCAFF, 0x400);
